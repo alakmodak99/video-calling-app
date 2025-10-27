@@ -11,7 +11,6 @@ import {
   Settings,
   Monitor,
   MonitorOff,
-  Phone,
   LogOut
 } from "lucide-react";
 
