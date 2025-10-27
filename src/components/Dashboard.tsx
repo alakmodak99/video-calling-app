@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,27 +19,67 @@ import {
   Share2,
   LogOut,
   Settings,
+  Calendar,
+  Clock,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { MeetingHistory } from "@/components/MeetingHistory";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { apiService, Meeting } from "@/lib/api";
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [callId, setCallId] = useState("");
   const [isCreatingCall, setIsCreatingCall] = useState(false);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoadingMeetings, setIsLoadingMeetings] = useState(false);
 
-  const createNewCall = () => {
+  // Load meetings on component mount
+  useEffect(() => {
+    if (user) {
+      loadMeetings();
+    }
+  }, [user]);
+
+  const loadMeetings = async () => {
+    try {
+      setIsLoadingMeetings(true);
+      const meetingsData = await apiService.getMeetings();
+      setMeetings(meetingsData);
+    } catch (error) {
+      console.error("Failed to load meetings:", error);
+      toast.error("Failed to load meetings");
+    } finally {
+      setIsLoadingMeetings(false);
+    }
+  };
+
+  const createNewCall = async () => {
     if (callId) return;
     const newCallId = `call_${Date.now()}_${Math.random()
       .toString(36)
       .substr(2, 9)}`;
     setCallId(newCallId);
     setIsCreatingCall(true);
+
+    // Create meeting in backend
+    try {
+      await apiService.createOrGetMeetingByCallId(newCallId, {
+        title: `Meeting ${newCallId}`,
+        callId: newCallId,
+        status: "scheduled",
+      });
+      await loadMeetings(); // Refresh meetings list
+    } catch (error) {
+      console.error("Failed to create meeting:", error);
+      toast.error("Failed to create meeting");
+    }
   };
 
   const joinCall = () => {
     if (callId.trim()) {
-      window.location.href = `/call/${callId.trim()}`;
+      router.push(`/call/${callId.trim()}`);
     }
   };
 
@@ -62,6 +102,36 @@ export function Dashboard() {
     } else {
       copyCallLink();
       toast.success("Call link copied to clipboard");
+    }
+  };
+
+  const joinMeeting = (meetingCallId: string) => {
+    router.push(`/call/${meetingCallId}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "ongoing":
+        return "text-green-600 dark:text-green-400";
+      case "completed":
+        return "text-blue-600 dark:text-blue-400";
+      case "cancelled":
+        return "text-red-600 dark:text-red-400";
+      case "scheduled":
+        return "text-yellow-600 dark:text-yellow-400";
+      default:
+        return "text-gray-600 dark:text-gray-400";
     }
   };
 
@@ -209,7 +279,111 @@ export function Dashboard() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Meeting History */}
+          <div className="md:col-span-2">
+            <MeetingHistory limit={5} />
+          </div>
         </div>
+
+        {/* Recent Meetings Management */}
+        {/* {meetings.length > 0 && (
+          <div className="mt-8 max-w-4xl mx-auto">
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-gray-900 dark:text-white">
+                  <span className="flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+                    Your Meetings
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMeetings}
+                    disabled={isLoadingMeetings}
+                    className="cursor-pointer"
+                  >
+                    {isLoadingMeetings ? "Loading..." : "Refresh"}
+                  </Button>
+                </CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  Manage your recent video call meetings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {meetings.slice(0, 5).map((meeting) => (
+                    <div
+                      key={meeting.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                              {meeting.title}
+                            </h3>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                                meeting.status
+                              )} bg-opacity-20`}
+                            >
+                              {meeting.status}
+                            </span>
+                          </div>
+
+                          {meeting.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              {meeting.description}
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>{formatDate(meeting.createdAt)}</span>
+                            </div>
+
+                            {meeting.duration > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{meeting.duration}m</span>
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              <span>
+                                {meeting.participantCount} participant
+                                {meeting.participantCount !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                            Call ID: {meeting.callId}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => joinMeeting(meeting.callId)}
+                            className="cursor-pointer"
+                          >
+                            <Phone className="h-4 w-4 mr-1" />
+                            Join
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )} */}
 
         {/* Features */}
         <div className="mt-12 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">

@@ -22,20 +22,30 @@ export const createStreamClient = (
 };
 
 export const generateUserToken = async (userId: string) => {
-  // In a real app, you'd generate this token on your backend
-  // For demo purposes, we'll use a simple approach
-  const response = await fetch("/api/generate-token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userId }),
-  });
+  try {
+    console.log("Generating token for userId:", userId);
 
-  if (!response.ok) {
-    throw new Error("Failed to generate token");
+    const response = await fetch("/api/generate-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    console.log("Token generation response status:", response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Token generation error:", errorData);
+      throw new Error(errorData.error || "Failed to generate token");
+    }
+
+    const { token } = await response.json();
+    console.log("Token generated successfully");
+    return token;
+  } catch (error) {
+    console.error("Error in generateUserToken:", error);
+    throw error;
   }
-
-  const { token } = await response.json();
-  return token;
 };

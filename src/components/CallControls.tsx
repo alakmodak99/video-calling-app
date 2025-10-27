@@ -8,11 +8,11 @@ import {
   MicOff,
   Video,
   VideoOff,
-  Phone,
   Settings,
   Monitor,
   MonitorOff,
-  LogOut,
+  Phone,
+  LogOut
 } from "lucide-react";
 
 interface CallControlsProps {
@@ -33,118 +33,171 @@ export function CallControls({ onLeave, onShowSettings }: CallControlsProps) {
   const toggleScreenShare = async () => await screenShare.toggle();
 
   return (
-    <div className="bg-gray-900 px-6 py-4 border-t border-gray-700">
-      <div className="flex items-center justify-between">
-        {/* Left Side Controls */}
-        <div className="flex items-center space-x-4">
-          {/* Audio Control */}
-          <div className="flex items-center justify-center gap-1">
+    <div className="bg-background/95 backdrop-blur-sm border-t border-border px-4 py-6 shadow-lg">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
+          {/* Microphone Control */}
+          <div className="flex flex-col items-center gap-2 group">
             <Button
               variant={isMute ? "destructive" : "secondary"}
-              size="lg"
+              size="icon"
               onClick={toggleMute}
-              className="rounded-full h-14 w-14 hover:scale-105 transition-transform cursor-pointer"
+              className={`
+                h-12 w-12 rounded-full transition-all duration-200 ease-in-out
+                hover:scale-110 active:scale-95 focus:ring-2 focus:ring-ring focus:ring-offset-2
+                ${
+                  isMute
+                    ? "bg-destructive hover:bg-destructive/90 shadow-lg shadow-destructive/25"
+                    : "bg-secondary hover:bg-secondary/80 shadow-md"
+                }
+                group-hover:shadow-lg cursor-pointer
+              `}
               aria-label={isMute ? "Unmute microphone" : "Mute microphone"}
-              style={{ width: "100%", height: "100%" }}
               title={isMute ? "Unmute microphone" : "Mute microphone"}
             >
               {isMute ? (
-                <MicOff className="h-6 w-6" />
+                <MicOff className="h-5 w-5 transition-transform duration-200" />
               ) : (
-                <Mic className="h-6 w-6" />
+                <Mic className="h-5 w-5 transition-transform duration-200" />
               )}
             </Button>
             <div className="text-center">
-              <p className="text-xs text-gray-400">Mic</p>
-              <p className="text-sm font-semibold text-gray-200">
-                {isMute ? "Off" : "On"}
+              <p className="text-xs text-muted-foreground font-medium">
+                Microphone
+              </p>
+              <p
+                className={`text-xs font-semibold transition-colors duration-200 ${
+                  isMute ? "text-destructive" : "text-foreground"
+                }`}
+              >
+                {isMute ? "Muted" : "On"}
               </p>
             </div>
           </div>
 
           {/* Video Control */}
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex flex-col items-center gap-2 group">
             <Button
               variant={isVideoOff ? "destructive" : "secondary"}
-              size="lg"
+              size="icon"
               onClick={toggleVideo}
-              className="rounded-full h-14 w-14 hover:scale-105 transition-transform cursor-pointer"
-              title={isVideoOff ? "Turn on camera" : "Turn off camera"}
-              style={{ width: "100%", height: "100%" }}
+              className={`
+                h-12 w-12 rounded-full transition-all duration-200 ease-in-out
+                hover:scale-110 active:scale-95 focus:ring-2 focus:ring-ring focus:ring-offset-2
+                ${
+                  isVideoOff
+                    ? "bg-destructive hover:bg-destructive/90 shadow-lg shadow-destructive/25"
+                    : "bg-secondary hover:bg-secondary/80 shadow-md"
+                }
+                group-hover:shadow-lg cursor-pointer
+              `}
               aria-label={isVideoOff ? "Turn on camera" : "Turn off camera"}
+              title={isVideoOff ? "Turn on camera" : "Turn off camera"}
             >
               {isVideoOff ? (
-                <VideoOff className="h-6 w-6" />
+                <VideoOff className="h-5 w-5 transition-transform duration-200" />
               ) : (
-                <Video className="h-6 w-6" />
+                <Video className="h-5 w-5 transition-transform duration-200" />
               )}
             </Button>
             <div className="text-center">
-              <p className="text-xs text-gray-400">Camera</p>
-              <p className="text-sm font-semibold text-gray-200">
+              <p className="text-xs text-muted-foreground font-medium">
+                Camera
+              </p>
+              <p
+                className={`text-xs font-semibold transition-colors duration-200 ${
+                  isVideoOff ? "text-destructive" : "text-foreground"
+                }`}
+              >
                 {isVideoOff ? "Off" : "On"}
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Center Control */}
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            variant={isScreenSharing ? "default" : "secondary"}
-            size="lg"
-            onClick={toggleScreenShare}
-            className="rounded-full h-14 w-14 hover:scale-105 transition-transform cursor-pointer"
-            title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
-            aria-label={
-              isScreenSharing ? "Stop sharing screen" : "Share screen"
-            }
-            style={{ width: "100%", height: "100%" }}
-          >
-            {isScreenSharing ? (
-              <MonitorOff className="h-6 w-6" />
-            ) : (
-              <Monitor className="h-6 w-6" />
-            )}
-          </Button>
-          <div className="text-center">
-            <p className="text-xs text-gray-400">Share</p>
-            <p className="text-sm font-semibold text-gray-200">
-              {isScreenSharing ? "On" : "Off"}
-            </p>
+          {/* Screen Share Control */}
+          <div className="flex flex-col items-center gap-2 group">
+            <Button
+              variant={isScreenSharing ? "default" : "secondary"}
+              size="icon"
+              onClick={toggleScreenShare}
+              className={`
+                h-12 w-12 rounded-full transition-all duration-200 ease-in-out
+                hover:scale-110 active:scale-95 focus:ring-2 focus:ring-ring focus:ring-offset-2
+                ${
+                  isScreenSharing
+                    ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+                    : "bg-secondary hover:bg-secondary/80 shadow-md"
+                }
+                group-hover:shadow-lg cursor-pointer
+              `}
+              aria-label={
+                isScreenSharing ? "Stop sharing screen" : "Share screen"
+              }
+              title={isScreenSharing ? "Stop sharing screen" : "Share screen"}
+            >
+              {isScreenSharing ? (
+                <MonitorOff className="h-5 w-5 transition-transform duration-200" />
+              ) : (
+                <Monitor className="h-5 w-5 transition-transform duration-200" />
+              )}
+            </Button>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground font-medium">
+                Screen
+              </p>
+              <p
+                className={`text-xs font-semibold transition-colors duration-200 ${
+                  isScreenSharing ? "text-primary" : "text-foreground"
+                }`}
+              >
+                {isScreenSharing ? "Sharing" : "Off"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Right Side Controls */}
-        <div className="flex items-center justify-center gap-1">
           {/* Settings Control */}
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex flex-col items-center gap-2 group">
             <Button
               variant="secondary"
-              size="lg"
+              size="icon"
               onClick={onShowSettings}
-              className="rounded-full h-14 w-14 hover:scale-105 transition-transform cursor-pointer"
-              title="Call settings"
+              className="
+                h-12 w-12 rounded-full transition-all duration-200 ease-in-out
+                hover:scale-110 active:scale-95 focus:ring-2 focus:ring-ring focus:ring-offset-2
+                bg-secondary hover:bg-secondary/80 shadow-md group-hover:shadow-lg cursor-pointer
+              "
               aria-label="Call settings"
-              style={{ width: "100%", height: "100%" }}
+              title="Call settings"
             >
-              <Settings className="h-6 w-6" />
+              <Settings className="h-5 w-5 transition-transform duration-200" />
             </Button>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground font-medium">
+                Settings
+              </p>
+            </div>
           </div>
 
-          {/* Leave Control */}
-          <div className="flex items-center justify-center gap-1">
+          {/* Leave Call Control */}
+          <div className="flex flex-col items-center gap-2 group">
             <Button
               variant="destructive"
-              size="lg"
+              size="icon"
               onClick={onLeave}
-              className="rounded-full h-14 w-14 hover:scale-105 transition-transform cursor-pointer"
-              title="Leave call"
+              className="
+                h-12 w-12 rounded-full transition-all duration-200 ease-in-out
+                hover:scale-110 active:scale-95 focus:ring-2 focus:ring-ring focus:ring-offset-2
+                bg-destructive hover:bg-destructive/90 shadow-lg shadow-destructive/25
+                group-hover:shadow-xl
+              "
               aria-label="Leave call"
-              style={{ width: "100%", height: "100%" }}
+              title="Leave call"
             >
-              <LogOut className="h-6 w-6" />
+              <LogOut className="h-5 w-5 transition-transform duration-200 cursor-pointer" />
             </Button>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground font-medium">Leave</p>
+            </div>
           </div>
         </div>
       </div>
